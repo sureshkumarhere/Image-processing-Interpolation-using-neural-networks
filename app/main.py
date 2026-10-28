@@ -60,6 +60,49 @@ def get_index():
     return "<h1>Super-Resolution Benchmark UI</h1><p>Frontend static/index.html not found.</p>"
 
 
+@app.get("/analytics", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
+def get_analytics():
+    analytics_file = static_dir / "analytics.html"
+    if analytics_file.exists():
+        with open(analytics_file, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h1>Super-Resolution Benchmark Analytics</h1><p>Frontend static/analytics.html not found.</p>"
+
+
+@app.get("/api/benchmark-summary")
+def get_benchmark_summary():
+    """Returns aggregated benchmark metrics across all models and datasets from summary.csv."""
+    import csv
+
+    summary_path = REPO_ROOT / "results" / "summary.csv"
+    if not summary_path.exists():
+        return {"records": []}
+
+    records = []
+    with open(summary_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                records.append({
+                    "experiment": row["experiment"],
+                    "model": row["model"],
+                    "dataset": row["dataset"],
+                    "scale": int(row["scale"]) if row.get("scale") else 2,
+                    "degradation": row.get("degradation", ""),
+                    "noise_sigma": float(row["noise_sigma"]) if row.get("noise_sigma") else 0.0,
+                    "n_images": int(row["n_images"]) if row.get("n_images") else 0,
+                    "param_count": int(row["param_count"]) if row.get("param_count") else 0,
+                    "mean_inference_time_s": float(row["mean_inference_time_s"]) if row.get("mean_inference_time_s") else 0.0,
+                    "mean_psnr": float(row["mean_psnr"]) if row.get("mean_psnr") else 0.0,
+                    "mean_ssim": float(row["mean_ssim"]) if row.get("mean_ssim") else 0.0,
+                })
+            except Exception:
+                continue
+
+    return {"records": records}
+
+
 @app.get("/api/models")
 def get_models():
     """Returns discovered eligible neural models and environment capabilities."""

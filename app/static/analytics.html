@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark Analytics Dashboard | Super-Resolution</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body class="analytics-body">
+    <!-- Header with Unified Navigation -->
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="icon">🔬</span>
+        <div>
+          <h1>Super-Resolution Benchmark</h1>
+          <p class="subtitle">Dynamic Performance & Robustness Analytics (Issue #10)</p>
+        </div>
+      </div>
+
+      <nav class="app-nav">
+        <a href="/" class="nav-link">⚡ Live Inference</a>
+        <a href="/analytics" class="nav-link active">📊 Benchmark Analytics</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="btn-export-csv" class="btn btn-secondary" title="Export Filtered Results to CSV">
+          📥 Export CSV
+        </button>
+        <button id="btn-reset-filters" class="btn btn-secondary" title="Reset all filters to default">
+          ↺ Reset Filters
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Analytics Content -->
+    <main class="analytics-container">
+      <!-- Filter Controls Toolbar -->
+      <section class="card filter-toolbar">
+        <div class="filter-group">
+          <label for="filter-dataset" class="tool-label">Dataset:</label>
+          <select id="filter-dataset" class="form-control select-filter">
+            <option value="all">All Datasets (Set5, Set14, BSD100, Urban100)</option>
+            <option value="Set5">Set5 (5 images, clean features)</option>
+            <option value="Set14">Set14 (14 images, mixed textures)</option>
+            <option value="BSD100">BSD100 (100 natural scenes)</option>
+            <option value="Urban100">Urban100 (100 urban structures)</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-scale" class="tool-label">Scale Factor:</label>
+          <select id="filter-scale" class="form-control select-filter">
+            <option value="all">All Scales (×2 and ×4)</option>
+            <option value="2">Scale ×2 (2x Upscaling)</option>
+            <option value="4">Scale ×4 (4x Upscaling)</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-condition" class="tool-label">Degradation:</label>
+          <select id="filter-condition" class="form-control select-filter">
+            <option value="all">All Conditions (Clean & Noisy)</option>
+            <option value="clean">Clean Bicubic Downscale (σ=0)</option>
+            <option value="noise15">Noisy Downscale (Gaussian σ=15)</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="tool-label">Primary Metric:</label>
+          <div class="metric-toggle-group">
+            <button type="button" id="toggle-metric-psnr" class="btn btn-sm btn-tool active">PSNR (dB)</button>
+            <button type="button" id="toggle-metric-ssim" class="btn btn-sm btn-tool">SSIM</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI Summary Cards -->
+      <section class="kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Top Peak PSNR</span>
+            <span class="kpi-icon">🏆</span>
+          </div>
+          <div class="kpi-value" id="kpi-best-psnr">--</div>
+          <div class="kpi-subtext" id="kpi-best-psnr-sub">Calculating...</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Highest SSIM Fidelity</span>
+            <span class="kpi-icon">✨</span>
+          </div>
+          <div class="kpi-value" id="kpi-best-ssim">--</div>
+          <div class="kpi-subtext" id="kpi-best-ssim-sub">Calculating...</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Fastest Inference Latency</span>
+            <span class="kpi-icon">⚡</span>
+          </div>
+          <div class="kpi-value" id="kpi-fastest-time">--</div>
+          <div class="kpi-subtext" id="kpi-fastest-time-sub">Calculating...</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Active Configurations</span>
+            <span class="kpi-icon">📊</span>
+          </div>
+          <div class="kpi-value" id="kpi-total-runs">--</div>
+          <div class="kpi-subtext" id="kpi-total-runs-sub">Across benchmark datasets</div>
+        </div>
+      </section>
+
+      <!-- Visualizations Grid (1-Column Stacked) -->
+      <section class="charts-grid">
+        <!-- 1. Performance vs Speed Trade-off -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3>1. Performance vs. Speed Trade-off</h3>
+              <p class="chart-desc">PSNR/SSIM vs. Inference Time. Bubble size indicates parameter count, marker shapes distinguish datasets. Scroll or drag to zoom.</p>
+            </div>
+            <div class="chart-actions">
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-in" data-chart="chart-scatter" title="Zoom In (or use mousewheel / pinch)">🔍 +</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-out" data-chart="chart-scatter" title="Zoom Out">🔍 −</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-reset" data-chart="chart-scatter" title="Reset Axes Scale">↺ Reset</button>
+              <button type="button" id="btn-toggle-log-x" class="btn btn-sm btn-tool" title="Toggle Log/Linear Latency Scale">Log X</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-png" data-chart="chart-scatter" data-name="speed_vs_performance" title="Download High-Res PNG">📷 PNG</button>
+            </div>
+          </div>
+          <div id="chart-scatter" class="chart-plot-container"></div>
+        </div>
+
+        <!-- 2. Robustness across Scales & Noise Levels -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3>2. Robustness Analysis Across Scales & Noise Levels</h3>
+              <p class="chart-desc">Grouped benchmark performance comparison across evaluation datasets under clean and severe noise (σ=15) conditions.</p>
+            </div>
+            <div class="chart-actions">
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-in" data-chart="chart-bar" title="Zoom In">🔍 +</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-out" data-chart="chart-bar" title="Zoom Out">🔍 −</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-reset" data-chart="chart-bar" title="Reset View">↺ Reset</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-png" data-chart="chart-bar" data-name="robustness_analysis" title="Download High-Res PNG">📷 PNG</button>
+            </div>
+          </div>
+          <div id="chart-bar" class="chart-plot-container chart-plot-tall"></div>
+        </div>
+
+        <!-- 3. Quality Distribution per Architecture -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3>3. Metric Distribution per Model Architecture</h3>
+              <p class="chart-desc">Box & whisker analysis showing median, interquartile spread (IQR), and all evaluation data points per architecture family.</p>
+            </div>
+            <div class="chart-actions">
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-in" data-chart="chart-box" title="Zoom In">🔍 +</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-out" data-chart="chart-box" title="Zoom Out">🔍 −</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-reset" data-chart="chart-box" title="Reset View">↺ Reset</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-png" data-chart="chart-box" data-name="quality_distribution" title="Download High-Res PNG">📷 PNG</button>
+            </div>
+          </div>
+          <div id="chart-box" class="chart-plot-container"></div>
+        </div>
+
+        <!-- 4. Parameter Efficiency Frontier -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3>4. Parameter Efficiency Frontier</h3>
+              <p class="chart-desc">Pareto analysis: Reconstruction fidelity (PSNR/SSIM) vs. Model Parameter Capacity (log scale).</p>
+            </div>
+            <div class="chart-actions">
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-in" data-chart="chart-eff" title="Zoom In">🔍 +</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-zoom-out" data-chart="chart-eff" title="Zoom Out">🔍 −</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-reset" data-chart="chart-eff" title="Reset View">↺ Reset</button>
+              <button type="button" class="btn btn-sm btn-tool btn-chart-png" data-chart="chart-eff" data-name="parameter_efficiency" title="Download High-Res PNG">📷 PNG</button>
+            </div>
+          </div>
+          <div id="chart-eff" class="chart-plot-container"></div>
+        </div>
+      </section>
+
+      <!-- Key Insights Summary -->
+      <section class="card insights-card">
+        <div class="insights-header">
+          <span class="insights-badge">Key Findings</span>
+          <h2>Quantitative Architecture Takeaways</h2>
+        </div>
+        <div class="insights-grid">
+          <div class="insight-item">
+            <h4>🛡️ Extreme Noise Robustness (σ=15)</h4>
+            <p>OurNN maintains high structural fidelity under additive Gaussian noise, surpassing Bicubic by <strong>+6.50 dB</strong> on Set5 (30.13 dB vs 23.63 dB) and <strong>+4.48 dB</strong> on BSD100, proving its simultaneous denoising and super-resolution capability.</p>
+          </div>
+          <div class="insight-item">
+            <h4>🚀 Parameter Efficiency</h4>
+            <p>With only <strong>~202k parameters</strong>, OurNN achieves competitive reconstruction fidelity with fraction-of-second CPU latency (~0.05s), positioned on the optimal Pareto efficiency frontier.</p>
+          </div>
+          <div class="insight-item">
+            <h4>🔬 Ablation Verification</h4>
+            <p>The ablation study confirms that residual skip connections (A1) and attention-gated feature refinement (A2) together improve SSIM and edge definition with less than 2% additional parameters over the plain backbone (A0).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filterable Benchmark Data Explorer Table -->
+      <section class="card table-card">
+        <div class="table-card-header">
+          <div>
+            <h3>Benchmark Data Explorer</h3>
+            <p class="chart-desc">Interactive, sortable table of all 97 benchmark evaluation runs.</p>
+          </div>
+          <div class="table-actions">
+            <input type="search" id="table-search" placeholder="Search model, dataset, experiment..." class="form-control table-search-input">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="analytics-table" class="metrics-table analytics-table">
+            <thead>
+              <tr>
+                <th data-sort="experiment">Experiment ⬍</th>
+                <th data-sort="model">Model Family ⬍</th>
+                <th data-sort="dataset">Dataset ⬍</th>
+                <th data-sort="scale">Scale ⬍</th>
+                <th data-sort="noise_sigma">Condition ⬍</th>
+                <th data-sort="param_count">Params ⬍</th>
+                <th data-sort="mean_inference_time_s">Latency (ms) ⬍</th>
+                <th data-sort="mean_psnr">PSNR (dB) ↑ ⬍</th>
+                <th data-sort="mean_ssim">SSIM ↑ ⬍</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="9" class="text-center text-muted">Loading benchmark records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/analytics.js"></script>
+  </body>
+</html>

@@ -67,17 +67,33 @@ def test_interpolation_methods_are_rejected_for_hr_reference_mode(tmp_path, monk
     monkeypatch.setattr("app.main.discover_eligible_models", lambda _: models)
 
     with pytest.raises(HTTPException) as exc_info:
-        asyncio.run(
-            run_inference(
-                file=UploadFile(filename="input.png", file=io.BytesIO()),
-                mode="hr_reference",
-                selected_models="interpolation_nearest_x2",
-                device_request="cpu",
-                degradation_type="bicubic",
-                noise_sigma=15.0,
-                ref_file=None,
-            )
+        run_inference(
+            file=UploadFile(filename="input.png", file=io.BytesIO()),
+            mode="hr_reference",
+            selected_models="interpolation_nearest_x2",
+            device_request="cpu",
+            degradation_type="bicubic",
+            noise_sigma=15.0,
+            ref_file=None,
         )
     assert exc_info.value.detail == (
         "Standard interpolation methods are available only in LR input mode."
     )
+
+
+def test_get_benchmark_summary_endpoint():
+    from app.main import get_benchmark_summary
+    data = get_benchmark_summary()
+    assert "records" in data
+    assert len(data["records"]) > 0
+    first = data["records"][0]
+    assert "model" in first
+    assert "mean_psnr" in first
+    assert "mean_ssim" in first
+
+
+def test_get_analytics_endpoint():
+    from app.main import get_analytics
+    html_content = get_analytics()
+    assert isinstance(html_content, str)
+    assert len(html_content) > 0
