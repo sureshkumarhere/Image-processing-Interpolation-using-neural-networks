@@ -19,10 +19,12 @@ Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser to test 
 
 ## 📖 Documentation
 
-All detailed guides and specifications are located in the [`docs/`](docs/) directory:
+All detailed guides, specifications, presentation slides, and reports are located in the [`docs/`](docs/) directory:
 
 | Document | Purpose |
 |---|---|
+| **[docs/PRESENTATION.pdf](docs/Presentation.pdf)** | Project presentation slide deck covering methodology, model design, benchmark findings, and visual comparisons. |
+| **[docs/REPORT.pdf](docs/Report.pdf)** | Comprehensive final project report detailing research findings, mathematical formulations, and quantitative evaluations. |
 | **[docs/SETUP.md](docs/SETUP.md)** | Environment setup, Python virtualenvs, CUDA drivers, dataset downloads, smoke tests, and Web GUI guide. |
 | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Pipeline overview, classical interpolation baselines, deep models (SRCNN, ESPCN, EDSR-Lite), and the custom `OurNN` architecture with ablation study. |
 | **[docs/TRAIN.md](docs/TRAIN.md)** | Local training, CLI overrides, remote GPU training on Kaggle via `.env`, and results aggregation. |

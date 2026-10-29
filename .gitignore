@@ -43,3 +43,5 @@ results/sr-run.log
 # Kaggle outputs and generated metadata
 kaggle_out*/
 kaggle/kernel-metadata.json
+
+git_help.py
