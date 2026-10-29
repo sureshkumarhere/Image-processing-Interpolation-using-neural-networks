@@ -12,8 +12,18 @@ pip install -r requirements.txt
 
 # 2. Launch interactive web interface
 python scripts/run_app.py --host 0.0.0.0 --port 8000
+
+# 3. From releases V1.0.0 download results.zip and extract it.
+
+# 4. Replace the results folder of local repo with the extracted zip folder.
+#    ( since the results.zip contains the best.ph - weights for best model which are required to run the backend of web-interface)
 ```
-Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser to test live upscaling, split-slider comparisons, difference maps, and metric exports.
+Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser to test live upscaling, split-slider comparisons, difference maps, and metric exports. In case this is not rendering try opening http:{your_ip_address}:8000 , get your ip by running this command on terminal.
+
+```bash
+# run on terminal to get ip address
+ipconfig
+```
 
 ---
 
